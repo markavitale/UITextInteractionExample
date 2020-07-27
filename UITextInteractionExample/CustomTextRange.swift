@@ -15,7 +15,7 @@ class CustomTextRange: UITextRange {
 	}
 	
 	override var isEmpty: Bool {
-		return false
+		return startIndex == endIndex
 	}
 	
 	override var start: UITextPosition {

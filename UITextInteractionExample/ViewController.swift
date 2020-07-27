@@ -18,6 +18,11 @@ class ViewController: UIViewController {
 			customTextLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 100),
 		])
 		
+		// Add UITextInteraction
+		let interaction = UITextInteraction(for: .editable)
+		interaction.textInput = customTextLabel
+		view.addInteraction(interaction)
+		
 	}
 
 

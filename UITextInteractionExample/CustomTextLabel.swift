@@ -9,12 +9,14 @@ class CustomTextLabel: UIView {
 		}
 		set {
 			textStorage.mutableString.setString(newValue)
+			invalidateIntrinsicContentSize()
+			setNeedsDisplay()
 		}
 	}
 	
 	private var textStorage = NSTextStorage()
 	
-	var attributes: [NSAttributedString.Key: Any] = {
+	var attributes: [NSAttributedString.Key: Any]? = {
 		[
 			.foregroundColor: UIColor.red,
 			.backgroundColor: UIColor.systemBackground,
@@ -28,8 +30,27 @@ class CustomTextLabel: UIView {
 	}
 	
 	override var intrinsicContentSize: CGSize {
-		return textStorage.size()
+		let size = textStorage.size()
+		return CGSize(width: ceil(size.width), height: ceil(size.height))
 	}
+	
+	var currentSelectedTextRange: UITextRange? = nil
+	
+	// MARK: First Responder
+	override var canBecomeFirstResponder: Bool {
+		true
+	}
+	
+	override func becomeFirstResponder() -> Bool {
+		let didBecomeFirstResponder = super.becomeFirstResponder()
+		if didBecomeFirstResponder {
+			// Start our selected text range at the very beginning
+			currentSelectedTextRange = CustomTextRange(startIndex: 0, endIndex: 0)
+		}
+		return didBecomeFirstResponder
+	}
+
+	
 }
 
 extension CustomTextLabel: UITextInput {
@@ -39,15 +60,21 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	func replace(_ range: UITextRange, withText text: String) {
-		<#code#>
+		guard let range = range as? CustomTextRange else {
+			fatalError()
+		}
+		
+		textStorage.replaceCharacters(in: NSRange(location: range.startIndex, length: range.endIndex - range.startIndex), with: text)
+		setNeedsDisplay()
+		invalidateIntrinsicContentSize()
 	}
 	
 	var selectedTextRange: UITextRange? {
 		get {
-			<#code#>
+			currentSelectedTextRange
 		}
 		set(selectedTextRange) {
-			<#code#>
+			currentSelectedTextRange = selectedTextRange
 		}
 	}
 	
@@ -60,7 +87,7 @@ extension CustomTextLabel: UITextInput {
 			return attributes
 		}
 		set(markedTextStyle) {
-			// TODO: implement
+			attributes = markedTextStyle
 		}
 	}
 	
@@ -81,7 +108,10 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	func textRange(from fromPosition: UITextPosition, to toPosition: UITextPosition) -> UITextRange? {
-		return nil // TODO: implement
+		guard let fromPosition = fromPosition as? CustomTextPosition, let toPosition = toPosition as? CustomTextPosition else {
+			return nil
+		}
+		return CustomTextRange(startIndex: fromPosition.index, endIndex: toPosition.index)
 	}
 	
 	func position(from position: UITextPosition, offset: Int) -> UITextPosition? {
@@ -150,18 +180,13 @@ extension CustomTextLabel: UITextInput {
 		let isStartFirst = compare(range.start, to: range.end) == .orderedAscending
 		
 		switch direction {
-		case .left:
+		case .left, .up:
 			return isStartFirst ? range.start : range.end
-		case .right:
-			return isStartFirst ? range.end : range.start
-		case .up:
-			return isStartFirst ? range.start : range.end
-		case .down:
+		case .right, .down:
 			return isStartFirst ? range.end : range.start
 		@unknown default:
 			fatalError()
 		}
-		return range.start
 	}
 	
 	func characterRange(byExtending position: UITextPosition, in direction: UITextLayoutDirection) -> UITextRange? {
@@ -177,8 +202,6 @@ extension CustomTextLabel: UITextInput {
 		@unknown default:
 			fatalError()
 		}
-		
-		return CustomTextRange(startIndex: CustomTextPosition.InvalidTextPosition, endIndex: CustomTextPosition.InvalidTextPosition)
 	}
 	
 	func baseWritingDirection(for position: UITextPosition, in direction: UITextStorageDirection) -> NSWritingDirection {
@@ -189,40 +212,70 @@ extension CustomTextLabel: UITextInput {
 		// Only support natural alignment
 	}
 		
+	// MARK: - Geometery
 	func firstRect(for range: UITextRange) -> CGRect {
-		<#code#>
+		bounds // TODO: implement properly
 	}
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
-		<#code#>
+		bounds // TODO: implement properly
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-		<#code#>
+		// TODO: implement properly
+		return [CustomTextSelectionRect(rect: bounds, writingDirection: .leftToRight, containsStart: true, containsEnd: true, isVertical: false)]
 	}
 	
 	func closestPosition(to point: CGPoint) -> UITextPosition? {
-		<#code#>
+		return CustomTextPosition(index: 0)// TODO: implement properly
 	}
 	
 	func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
-		<#code#>
+		return CustomTextPosition(index: 0)// TODO: implement properly
 	}
 	
 	func characterRange(at point: CGPoint) -> UITextRange? {
-		<#code#>
+		return CustomTextRange(startIndex: 0, endIndex: 1)// TODO: implement properly
 	}
 	
 	var hasText: Bool {
-		text.isEmpty
+		!text.isEmpty
 	}
 	
 	func insertText(_ text: String) {
-		// TODO: implement
+		if let currentSelectedTextRange = currentSelectedTextRange {
+			replace(currentSelectedTextRange, withText: text)
+			invalidateIntrinsicContentSize()
+			setNeedsDisplay()
+		}
+		
+		if let start = currentSelectedTextRange?.start as? CustomTextPosition {
+			let newSelectionLocation = start.index + text.count
+			currentSelectedTextRange = CustomTextRange(startIndex: newSelectionLocation, endIndex: newSelectionLocation)
+		}
+		
 	}
 	
 	func deleteBackward() {
-		// TODO: implement
+		guard let currentSelectedTextRange = currentSelectedTextRange else {
+			// no selection, how do we delete?
+			fatalError()
+		}
+		var newSelectionIndex = 0
+		if currentSelectedTextRange.isEmpty { // empty selection, just use the start position and move back by one if possible
+			if let start = currentSelectedTextRange.start as? CustomTextPosition, start.index > 0, start.index <= text.count {
+				textStorage.deleteCharacters(in: NSRange(location: start.index - 1, length: 1))
+				newSelectionIndex = start.index - 1
+			}
+		} else if let start = currentSelectedTextRange.start as? CustomTextPosition, let end = currentSelectedTextRange.end as? CustomTextPosition { // there is a selection
+			textStorage.deleteCharacters(in: NSRange(location: start.index, length: end.index - start.index))
+			newSelectionIndex = start.index
+		}
+		
+		self.currentSelectedTextRange = CustomTextRange(startIndex: newSelectionIndex, endIndex: newSelectionIndex)
+		
+		invalidateIntrinsicContentSize()
+		setNeedsDisplay()
 	}
 	
 	
