@@ -10,6 +10,8 @@
 		8F5CCCEB24CF26430039A531 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8F5CCCEA24CF26420039A531 /* README.md */; };
 		8F5CCCED24CF269B0039A531 /* CustomTextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F5CCCEC24CF269B0039A531 /* CustomTextLabel.swift */; };
 		8F5CCCEF24CF2A930039A531 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 8F5CCCEE24CF2A930039A531 /* LICENSE */; };
+		8F5CCCF124CF30800039A531 /* CustomTextPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F5CCCF024CF30800039A531 /* CustomTextPosition.swift */; };
+		8F5CCCF424CF3C9D0039A531 /* CustomTextRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F5CCCF324CF3C9D0039A531 /* CustomTextRange.swift */; };
 		8F9CF98D24CB5FB7001EFBF3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9CF98C24CB5FB7001EFBF3 /* AppDelegate.swift */; };
 		8F9CF98F24CB5FB7001EFBF3 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9CF98E24CB5FB7001EFBF3 /* SceneDelegate.swift */; };
 		8F9CF99124CB5FB7001EFBF3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9CF99024CB5FB7001EFBF3 /* ViewController.swift */; };
@@ -33,6 +35,8 @@
 		8F5CCCEA24CF26420039A531 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		8F5CCCEC24CF269B0039A531 /* CustomTextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextLabel.swift; sourceTree = "<group>"; };
 		8F5CCCEE24CF2A930039A531 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		8F5CCCF024CF30800039A531 /* CustomTextPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextPosition.swift; sourceTree = "<group>"; };
+		8F5CCCF324CF3C9D0039A531 /* CustomTextRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextRange.swift; sourceTree = "<group>"; };
 		8F9CF98924CB5FB7001EFBF3 /* UITextInteractionExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UITextInteractionExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F9CF98C24CB5FB7001EFBF3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8F9CF98E24CB5FB7001EFBF3 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -91,6 +95,8 @@
 				8F9CF98E24CB5FB7001EFBF3 /* SceneDelegate.swift */,
 				8F9CF99024CB5FB7001EFBF3 /* ViewController.swift */,
 				8F5CCCEC24CF269B0039A531 /* CustomTextLabel.swift */,
+				8F5CCCF024CF30800039A531 /* CustomTextPosition.swift */,
+				8F5CCCF324CF3C9D0039A531 /* CustomTextRange.swift */,
 				8F9CF99224CB5FB7001EFBF3 /* Main.storyboard */,
 				8F9CF99524CB5FB7001EFBF3 /* Assets.xcassets */,
 				8F9CF99724CB5FB7001EFBF3 /* LaunchScreen.storyboard */,
@@ -213,6 +219,8 @@
 			files = (
 				8F9CF99124CB5FB7001EFBF3 /* ViewController.swift in Sources */,
 				8F9CF98D24CB5FB7001EFBF3 /* AppDelegate.swift in Sources */,
+				8F5CCCF124CF30800039A531 /* CustomTextPosition.swift in Sources */,
+				8F5CCCF424CF3C9D0039A531 /* CustomTextRange.swift in Sources */,
 				8F9CF98F24CB5FB7001EFBF3 /* SceneDelegate.swift in Sources */,
 				8F5CCCED24CF269B0039A531 /* CustomTextLabel.swift in Sources */,
 			);
