@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8F5CCCEB24CF26430039A531 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8F5CCCEA24CF26420039A531 /* README.md */; };
+		8F5CCCED24CF269B0039A531 /* CustomTextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F5CCCEC24CF269B0039A531 /* CustomTextLabel.swift */; };
+		8F5CCCEF24CF2A930039A531 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 8F5CCCEE24CF2A930039A531 /* LICENSE */; };
 		8F9CF98D24CB5FB7001EFBF3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9CF98C24CB5FB7001EFBF3 /* AppDelegate.swift */; };
 		8F9CF98F24CB5FB7001EFBF3 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9CF98E24CB5FB7001EFBF3 /* SceneDelegate.swift */; };
 		8F9CF99124CB5FB7001EFBF3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9CF99024CB5FB7001EFBF3 /* ViewController.swift */; };
@@ -27,6 +30,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8F5CCCEA24CF26420039A531 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		8F5CCCEC24CF269B0039A531 /* CustomTextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextLabel.swift; sourceTree = "<group>"; };
+		8F5CCCEE24CF2A930039A531 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		8F9CF98924CB5FB7001EFBF3 /* UITextInteractionExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UITextInteractionExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F9CF98C24CB5FB7001EFBF3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8F9CF98E24CB5FB7001EFBF3 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -61,6 +67,8 @@
 		8F9CF98024CB5FB7001EFBF3 = {
 			isa = PBXGroup;
 			children = (
+				8F5CCCEA24CF26420039A531 /* README.md */,
+				8F5CCCEE24CF2A930039A531 /* LICENSE */,
 				8F9CF98B24CB5FB7001EFBF3 /* UITextInteractionExample */,
 				8F9CF9A224CB5FB7001EFBF3 /* UITextInteractionExampleUITests */,
 				8F9CF98A24CB5FB7001EFBF3 /* Products */,
@@ -82,6 +90,7 @@
 				8F9CF98C24CB5FB7001EFBF3 /* AppDelegate.swift */,
 				8F9CF98E24CB5FB7001EFBF3 /* SceneDelegate.swift */,
 				8F9CF99024CB5FB7001EFBF3 /* ViewController.swift */,
+				8F5CCCEC24CF269B0039A531 /* CustomTextLabel.swift */,
 				8F9CF99224CB5FB7001EFBF3 /* Main.storyboard */,
 				8F9CF99524CB5FB7001EFBF3 /* Assets.xcassets */,
 				8F9CF99724CB5FB7001EFBF3 /* LaunchScreen.storyboard */,
@@ -182,7 +191,9 @@
 			files = (
 				8F9CF99924CB5FB7001EFBF3 /* LaunchScreen.storyboard in Resources */,
 				8F9CF99624CB5FB7001EFBF3 /* Assets.xcassets in Resources */,
+				8F5CCCEB24CF26430039A531 /* README.md in Resources */,
 				8F9CF99424CB5FB7001EFBF3 /* Main.storyboard in Resources */,
+				8F5CCCEF24CF2A930039A531 /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,6 +214,7 @@
 				8F9CF99124CB5FB7001EFBF3 /* ViewController.swift in Sources */,
 				8F9CF98D24CB5FB7001EFBF3 /* AppDelegate.swift in Sources */,
 				8F9CF98F24CB5FB7001EFBF3 /* SceneDelegate.swift in Sources */,
+				8F5CCCED24CF269B0039A531 /* CustomTextLabel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
