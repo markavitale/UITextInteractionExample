@@ -17,9 +17,12 @@ class CustomTextLabel: UIView {
 	private var textStorage = NSTextStorage()
 	
 	var attributes: [NSAttributedString.Key: Any]? = {
-		[
+		let font = UIFont.systemFont(ofSize: 20.0)
+		
+		return [
 			.foregroundColor: UIColor.red,
 			.backgroundColor: UIColor.systemBackground,
+			.font: font,
 		]
 	}()
 	
@@ -30,7 +33,7 @@ class CustomTextLabel: UIView {
 	}
 	
 	override var intrinsicContentSize: CGSize {
-		let size = textStorage.size()
+		let size = NSAttributedString(string: text, attributes: attributes).size()
 		return CGSize(width: ceil(size.width), height: ceil(size.height))
 	}
 	
@@ -218,7 +221,14 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
-		bounds // TODO: implement properly
+		guard let position = position as? CustomTextPosition,
+			let font = attributes?[.font] as? UIFont else {
+				return bounds
+		}
+		
+		let substring = textStorage.attributedSubstring(from: NSRange(location: 0, length: max(position.index, 0)))
+		let size = NSAttributedString(string: substring.string, attributes: attributes).size()
+		return CGRect(x: size.width, y: 0, width: 2.0, height: font.lineHeight)
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
