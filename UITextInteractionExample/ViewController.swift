@@ -8,7 +8,7 @@ class ViewController: UIViewController {
 		super.viewDidLoad()
 		
 		let customTextLabel = CustomTextLabel(frame: .zero)
-		customTextLabel.text = "Sphinx of black quartz, judge my vow."
+		customTextLabel.labelText = "Sphinx of black quartz, judge my vow."
 		customTextLabel.translatesAutoresizingMaskIntoConstraints = false
 		
 		view.addSubview(customTextLabel)

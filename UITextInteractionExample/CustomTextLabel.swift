@@ -3,18 +3,8 @@
 import UIKit
 
 class CustomTextLabel: UIView {
-	var text: String {
-		get {
-			textStorage.string
-		}
-		set {
-			textStorage.mutableString.setString(newValue)
-			invalidateIntrinsicContentSize()
-			setNeedsDisplay()
-		}
-	}
-	
-	private var textStorage = NSTextStorage()
+	static let caretWidth: CGFloat = 2.0
+	var labelText: String = ""
 	
 	var attributes: [NSAttributedString.Key: Any]? = {
 		let font = UIFont.systemFont(ofSize: 20.0)
@@ -28,12 +18,12 @@ class CustomTextLabel: UIView {
 	
 	override func draw(_ rect: CGRect) {
 		super.draw(rect)
-		let attributedString = NSAttributedString(string: text, attributes: attributes)
+		let attributedString = NSAttributedString(string: labelText, attributes: attributes)
 		attributedString.draw(in: rect)
 	}
 	
 	override var intrinsicContentSize: CGSize {
-		let size = NSAttributedString(string: text, attributes: attributes).size()
+		let size = NSAttributedString(string: labelText, attributes: attributes).size()
 		return CGSize(width: ceil(size.width), height: ceil(size.height))
 	}
 	
@@ -52,24 +42,23 @@ extension CustomTextLabel: UITextInput {
 			fatalError()
 		}
 		let location =  max(rangeStart.index, 0)
-		let length = max(min(text.count - location, rangeEnd.index - location), 0)
+		let length = max(min(labelText.count - location, rangeEnd.index - location), 0)
 		
-		if location >= text.count {
+		guard location < labelText.count,
+			let subrange = Range(NSRange(location: location, length:length), in: labelText) else {
 			return nil
 		}
 		
-		assert(location < text.count)
-		assert(location + length <= text.count)
-		
-		return textStorage.attributedSubstring(from: NSRange(location: location, length:length)).string
+		return String(labelText[subrange])
 	}
 	
 	func replace(_ range: UITextRange, withText text: String) {
-		guard let range = range as? CustomTextRange else {
+		guard let range = range as? CustomTextRange,
+		let textSubrange = Range(NSRange(location: range.startIndex, length: range.endIndex - range.startIndex), in: self.labelText) else {
 			fatalError()
 		}
 		
-		textStorage.replaceCharacters(in: NSRange(location: range.startIndex, length: range.endIndex - range.startIndex), with: text)
+		self.labelText.replaceSubrange(textSubrange, with: text)
 		setNeedsDisplay()
 		invalidateIntrinsicContentSize()
 	}
@@ -109,7 +98,7 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	var endOfDocument: UITextPosition {
-		CustomTextPosition(index: text.count) // TODO: -1?
+		CustomTextPosition(index: labelText.count) // TODO: -1?
 	}
 	
 	func textRange(from fromPosition: UITextPosition, to toPosition: UITextPosition) -> UITextRange? {
@@ -127,7 +116,7 @@ extension CustomTextLabel: UITextInput {
 		let proposedIndex = position.index + offset
 		
 		// return nil if proposed index is out of bounds
-		guard proposedIndex >= 0 && proposedIndex <= text.count else {
+		guard proposedIndex >= 0 && proposedIndex <= labelText.count else {
 			return nil
 		}
 		
@@ -149,7 +138,7 @@ extension CustomTextLabel: UITextInput {
 		}
 		
 		// return nil if proposed index is out of bounds
-		guard proposedIndex >= 0 && proposedIndex <= text.count else {
+		guard proposedIndex >= 0 && proposedIndex <= labelText.count else {
 			return nil
 		}
 	
@@ -216,7 +205,7 @@ extension CustomTextLabel: UITextInput {
 		case .left, .up:
 			return CustomTextRange(startIndex: 0, endIndex: position.index)
 		case .right, .down:
-			return CustomTextRange(startIndex: position.index, endIndex: text.count)
+			return CustomTextRange(startIndex: position.index, endIndex: labelText.count)
 		@unknown default:
 			fatalError()
 		}
@@ -235,12 +224,24 @@ extension CustomTextLabel: UITextInput {
 		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition, let font = attributes?[.font] as? UIFont else {
 			return .zero
 		}
-		let preSubstring = textStorage.attributedSubstring(from: NSRange(location: 0, length: rangeStart.index))
-		let preSize = NSAttributedString(string: preSubstring.string, attributes: attributes).size()
-		let actualSubstring = textStorage.attributedSubstring(from: NSRange(location: rangeStart.index, length: rangeEnd.index - rangeStart.index))
-		let actualSize = NSAttributedString(string: actualSubstring.string, attributes: attributes).size()
 		
-		return CGRect(x: preSize.width, y: 0, width: actualSize.width, height: font.lineHeight)
+		var initialXposition: CGFloat = 0
+		var rectWidth: CGFloat = 0
+		if rangeStart.index >= labelText.count {
+			initialXposition = self.intrinsicContentSize.width
+		} else {
+			let startTextIndex = labelText.index(labelText.startIndex, offsetBy: rangeStart.index)
+			let endTextIndex = labelText.index(startTextIndex, offsetBy: max(rangeEnd.index - rangeStart.index - 1, 0))
+			
+			let preSubstring = labelText.prefix(upTo: labelText.index(labelText.startIndex, offsetBy: rangeStart.index))
+			let preSize = NSAttributedString(string: String(preSubstring), attributes: attributes).size()
+			let actualSubstring = labelText[startTextIndex...endTextIndex]
+			
+			let actualSize = NSAttributedString(string: String(actualSubstring), attributes: attributes).size()
+			initialXposition = preSize.width
+			rectWidth = actualSize.width
+		}
+		return CGRect(x: initialXposition, y: 0, width: rectWidth, height: font.lineHeight)
 	}
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
@@ -249,21 +250,21 @@ extension CustomTextLabel: UITextInput {
 				return bounds
 		}
 		
-		let substring = textStorage.attributedSubstring(from: NSRange(location: 0, length: max(position.index, 0)))
-		let size = NSAttributedString(string: substring.string, attributes: attributes).size()
-		return CGRect(x: size.width, y: 0, width: 2.0, height: font.lineHeight)
+		let substring = labelText.prefix(max(position.index, 0))
+		let size = NSAttributedString(string: String(substring), attributes: attributes).size()
+		return CGRect(x: size.width, y: 0, width: CustomTextLabel.caretWidth, height: font.lineHeight)
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
 		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition else {
 			fatalError()
 		}
-		return [CustomTextSelectionRect(rect: firstRect(for: range), writingDirection: .leftToRight, containsStart: rangeStart.index == 0, containsEnd: rangeEnd.index == text.count, isVertical: false)]
+		return [CustomTextSelectionRect(rect: firstRect(for: range), writingDirection: .leftToRight, containsStart: rangeStart.index == 0, containsEnd: rangeEnd.index == labelText.count, isVertical: false)]
 	}
 	
 	func closestPosition(to point: CGPoint) -> UITextPosition? {
 		var totalWidth: CGFloat = 0.0
-		for (index, character) in text.enumerated() {
+		for (index, character) in labelText.enumerated() {
 			let characterSize = NSAttributedString(string: String(character), attributes: attributes).size()
 
 			if totalWidth <= point.x && point.x < totalWidth + characterSize.width {
@@ -292,7 +293,7 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	var hasText: Bool {
-		!text.isEmpty
+		!labelText.isEmpty
 	}
 	
 	func insertText(_ text: String) {
@@ -314,17 +315,22 @@ extension CustomTextLabel: UITextInput {
 			// no selection, how do we delete?
 			fatalError()
 		}
+		
 		var newSelectionIndex = 0
 		if currentSelectedTextRange.isEmpty { // empty selection, just use the start position and move back by one if possible
-			if let start = currentSelectedTextRange.start as? CustomTextPosition, start.index > 0, start.index <= text.count {
+			if let start = currentSelectedTextRange.start as? CustomTextPosition, start.index > 0, start.index <= labelText.count {
 				if start.index - 1 > 0 {
-					textStorage.deleteCharacters(in: NSRange(location: start.index - 1, length: 1))
-					newSelectionIndex = start.index - 1
+					if let subrange = Range(NSRange(location: start.index - 1, length: 1), in: labelText) {
+						labelText.removeSubrange(subrange)
+						newSelectionIndex = start.index - 1
+					}
 				}
 			}
 		} else if let start = currentSelectedTextRange.start as? CustomTextPosition, let end = currentSelectedTextRange.end as? CustomTextPosition { // there is a selection
-			textStorage.deleteCharacters(in: NSRange(location: start.index, length: end.index - start.index))
-			newSelectionIndex = start.index
+			if let subrange = Range(NSRange(location: start.index, length: end.index - start.index), in: labelText) {
+				labelText.removeSubrange(subrange)
+				newSelectionIndex = start.index
+			}
 		}
 		
 		self.currentSelectedTextRange = CustomTextRange(startIndex: newSelectionIndex, endIndex: newSelectionIndex)
