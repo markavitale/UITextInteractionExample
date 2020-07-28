@@ -37,23 +37,12 @@ class CustomTextLabel: UIView {
 		return CGSize(width: ceil(size.width), height: ceil(size.height))
 	}
 	
-	var currentSelectedTextRange: UITextRange? = nil
+	var currentSelectedTextRange: UITextRange? = CustomTextRange(startIndex: 0, endIndex: 0)
 	
 	// MARK: First Responder
 	override var canBecomeFirstResponder: Bool {
 		true
 	}
-	
-	override func becomeFirstResponder() -> Bool {
-		let didBecomeFirstResponder = super.becomeFirstResponder()
-		if didBecomeFirstResponder {
-			// Start our selected text range at the very beginning
-			currentSelectedTextRange = CustomTextRange(startIndex: 0, endIndex: 0)
-		}
-		return didBecomeFirstResponder
-	}
-
-	
 }
 
 extension CustomTextLabel: UITextInput {
@@ -82,7 +71,7 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	var markedTextRange: UITextRange? {
-		return nil //TODO: implement
+		return selectedTextRange // TODO: confirm this is ok
 	}
 	
 	var markedTextStyle: [NSAttributedString.Key : Any]? {
@@ -217,7 +206,15 @@ extension CustomTextLabel: UITextInput {
 		
 	// MARK: - Geometery
 	func firstRect(for range: UITextRange) -> CGRect {
-		bounds // TODO: implement properly
+		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition, let font = attributes?[.font] as? UIFont else {
+			return .zero
+		}
+		let preSubstring = textStorage.attributedSubstring(from: NSRange(location: 0, length: rangeStart.index))
+		let preSize = NSAttributedString(string: preSubstring.string, attributes: attributes).size()
+		let actualSubstring = textStorage.attributedSubstring(from: NSRange(location: rangeStart.index, length: rangeEnd.index - rangeStart.index))
+		let actualSize = NSAttributedString(string: actualSubstring.string, attributes: attributes).size()
+		
+		return CGRect(x: preSize.width, y: 0, width: actualSize.width, height: font.lineHeight)
 	}
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
@@ -232,11 +229,23 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-		// TODO: implement properly
-		return [CustomTextSelectionRect(rect: bounds, writingDirection: .leftToRight, containsStart: true, containsEnd: true, isVertical: false)]
+		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition else {
+			fatalError()
+		}
+		return [CustomTextSelectionRect(rect: firstRect(for: range), writingDirection: .leftToRight, containsStart: rangeStart.index == 0, containsEnd: rangeEnd.index == text.count, isVertical: false)]
 	}
 	
 	func closestPosition(to point: CGPoint) -> UITextPosition? {
+		var totalWidth: CGFloat = 0.0
+		for (index, character) in text.enumerated() {
+			let characterSize = NSAttributedString(string: String(character), attributes: attributes).size()
+
+			if totalWidth < point.x && point.x <= totalWidth + characterSize.width {
+				return CustomTextPosition(index: index)
+			} else {
+				totalWidth = totalWidth + characterSize.width
+			}
+		}
 		return CustomTextPosition(index: 0)// TODO: implement properly
 	}
 	
