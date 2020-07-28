@@ -48,7 +48,20 @@ class CustomTextLabel: UIView {
 extension CustomTextLabel: UITextInput {
 	
 	func text(in range: UITextRange) -> String? {
-		text // TextRange
+		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition else {
+			fatalError()
+		}
+		let location =  max(rangeStart.index, 0)
+		let length = max(min(text.count - location, rangeEnd.index - location), 0)
+		
+		if location >= text.count {
+			return nil
+		}
+		
+		assert(location < text.count)
+		assert(location + length <= text.count)
+		
+		return textStorage.attributedSubstring(from: NSRange(location: location, length:length)).string
 	}
 	
 	func replace(_ range: UITextRange, withText text: String) {
@@ -110,7 +123,15 @@ extension CustomTextLabel: UITextInput {
 		guard let position = position as? CustomTextPosition else {
 			return nil
 		}
-		return CustomTextPosition(index: position.index + offset)
+		
+		let proposedIndex = position.index + offset
+		
+		// return nil if proposed index is out of bounds
+		guard proposedIndex >= 0 && proposedIndex <= text.count else {
+			return nil
+		}
+		
+		return CustomTextPosition(index: proposedIndex)
 	}
 	
 	func position(from position: UITextPosition, in direction: UITextLayoutDirection, offset: Int) -> UITextPosition? {
@@ -118,16 +139,21 @@ extension CustomTextLabel: UITextInput {
 			return nil
 		}
 		
-		var newPosition: Int = position.index
+		var proposedIndex: Int = position.index
 		if direction == .left {
-			newPosition = position.index - offset
+			proposedIndex = position.index - offset
 		}
 		
 		if direction == .right {
-			newPosition = position.index + offset
+			proposedIndex = position.index + offset
 		}
 		
-		return CustomTextPosition(index: newPosition)
+		// return nil if proposed index is out of bounds
+		guard proposedIndex >= 0 && proposedIndex <= text.count else {
+			return nil
+		}
+	
+		return CustomTextPosition(index: proposedIndex)
 
 	}
 	
@@ -137,9 +163,9 @@ extension CustomTextLabel: UITextInput {
 			return .orderedSame
 		}
 		
-		if position.index < other.index {
+		if position < other {
 			return .orderedAscending
-		} else if position.index > other.index {
+		} else if position > other {
 			return .orderedDescending
 		}
 		return .orderedSame
@@ -240,21 +266,29 @@ extension CustomTextLabel: UITextInput {
 		for (index, character) in text.enumerated() {
 			let characterSize = NSAttributedString(string: String(character), attributes: attributes).size()
 
-			if totalWidth < point.x && point.x <= totalWidth + characterSize.width {
+			if totalWidth <= point.x && point.x < totalWidth + characterSize.width {
 				return CustomTextPosition(index: index)
 			} else {
 				totalWidth = totalWidth + characterSize.width
 			}
 		}
-		return CustomTextPosition(index: 0)// TODO: implement properly
+		return CustomTextPosition(index: 0)
 	}
 	
 	func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
-		return CustomTextPosition(index: 0)// TODO: implement properly
+		guard let proposedPosition = closestPosition(to: point) as? CustomTextPosition,
+			let rangeStart = range.start as? CustomTextPosition,
+			let rangeEnd = range.end as? CustomTextPosition else {
+			return nil
+		}
+		return min(max(proposedPosition, rangeStart), rangeEnd)
 	}
 	
 	func characterRange(at point: CGPoint) -> UITextRange? {
-		return CustomTextRange(startIndex: 0, endIndex: 1)// TODO: implement properly
+		guard let textPosition = closestPosition(to: point) as? CustomTextPosition else {
+			return nil
+		}
+		return CustomTextRange(startIndex: textPosition.index, endIndex: textPosition.index + 1)
 	}
 	
 	var hasText: Bool {
@@ -283,8 +317,10 @@ extension CustomTextLabel: UITextInput {
 		var newSelectionIndex = 0
 		if currentSelectedTextRange.isEmpty { // empty selection, just use the start position and move back by one if possible
 			if let start = currentSelectedTextRange.start as? CustomTextPosition, start.index > 0, start.index <= text.count {
-				textStorage.deleteCharacters(in: NSRange(location: start.index - 1, length: 1))
-				newSelectionIndex = start.index - 1
+				if start.index - 1 > 0 {
+					textStorage.deleteCharacters(in: NSRange(location: start.index - 1, length: 1))
+					newSelectionIndex = start.index - 1
+				}
 			}
 		} else if let start = currentSelectedTextRange.start as? CustomTextPosition, let end = currentSelectedTextRange.end as? CustomTextPosition { // there is a selection
 			textStorage.deleteCharacters(in: NSRange(location: start.index, length: end.index - start.index))
