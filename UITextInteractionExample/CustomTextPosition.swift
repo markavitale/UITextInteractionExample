@@ -4,11 +4,28 @@ import UIKit
 
 
 class CustomTextPosition: UITextPosition {
-	static let InvalidTextPosition = -1
-
 	let index: Int
 	
 	init(index: Int) {
 		self.index = index
 	}
+}
+
+extension CustomTextPosition: Comparable {
+	static func < (lhs: CustomTextPosition, rhs: CustomTextPosition) -> Bool {
+		lhs.index < rhs.index
+	}
+	
+	static func <= (lhs: CustomTextPosition, rhs: CustomTextPosition) -> Bool {
+		lhs.index <= rhs.index
+	}
+
+	static func >= (lhs: CustomTextPosition, rhs: CustomTextPosition) -> Bool {
+		lhs.index >= rhs.index
+	}
+
+	static func > (lhs: CustomTextPosition, rhs: CustomTextPosition) -> Bool {
+		lhs.index > rhs.index
+	}
+
 }
