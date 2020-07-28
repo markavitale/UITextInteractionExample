@@ -268,7 +268,12 @@ extension CustomTextLabel: UITextInput {
 			let characterSize = NSAttributedString(string: String(character), attributes: attributes).size()
 
 			if totalWidth <= point.x && point.x < totalWidth + characterSize.width {
-				return CustomTextPosition(index: index)
+				// Selection ocurred inside this character, should we go one back or one forward?
+				if point.x - totalWidth > characterSize.width / 2.0 {
+					return CustomTextPosition(index: index + 1)
+				} else {
+					return CustomTextPosition(index: index)
+				}
 			} else {
 				totalWidth = totalWidth + characterSize.width
 			}
