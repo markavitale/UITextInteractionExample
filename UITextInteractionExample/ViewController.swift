@@ -4,8 +4,8 @@ import UIKit
 
 class ViewController: UIViewController {
 
-	override func viewDidLoad() {
-		super.viewDidLoad()
+	override func loadView() {
+		view = UIView(frame: .zero)
 		
 		// Create a custom text label and add it as a subview
 		let customTextLabel = CustomTextLabel(frame: .zero)
