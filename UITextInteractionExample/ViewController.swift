@@ -7,10 +7,10 @@ class ViewController: UIViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
+		// Create a custom text label and add it as a subview
 		let customTextLabel = CustomTextLabel(frame: .zero)
 		customTextLabel.labelText = "Sphinx of black quartz, judge my vow."
 		customTextLabel.translatesAutoresizingMaskIntoConstraints = false
-		
 		view.addSubview(customTextLabel)
 		
 		NSLayoutConstraint.activate([
@@ -18,7 +18,7 @@ class ViewController: UIViewController {
 			customTextLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 100),
 		])
 		
-		// Add UITextInteraction
+		// Add UITextInteraction based on the customTextLabel
 		let interaction = UITextInteraction(for: .editable)
 		interaction.textInput = customTextLabel
 		view.addInteraction(interaction)

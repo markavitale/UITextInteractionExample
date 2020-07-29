@@ -2,10 +2,39 @@
 
 import UIKit
 
+/// A simple custom text label that conforms to `UITextInput` for use with `UITextInteraction`
 class CustomTextLabel: UIView {
-	static let caretWidth: CGFloat = 2.0
-	var labelText: String = ""
 	
+	/// The width of the caret rect for use in `UITextInput` conformance
+	static let caretWidth: CGFloat = 2.0
+	
+	/// The text to be drawn to screen by this `CustomTextLabel`
+	var labelText: String = "" {
+		didSet {
+			textDidChange()
+		}
+	}
+	
+	/// A simple draw call override that uses `NSAttributedString` to draw `labelText` with `attributes`
+	override func draw(_ rect: CGRect) {
+		super.draw(rect)
+		let attributedString = NSAttributedString(string: labelText, attributes: attributes)
+		attributedString.draw(in: rect)
+	}
+	
+	/// An intrinsicContentSize override to size this view based on the size of `labelText` when drawn with `attributes`
+	override var intrinsicContentSize: CGSize {
+		let size = NSAttributedString(string: labelText, attributes: attributes).size()
+		return CGSize(width: ceil(size.width), height: ceil(size.height))
+	}
+	
+	/// A helper function to call when our text contents have changed
+	fileprivate func textDidChange() {
+		invalidateIntrinsicContentSize()
+		setNeedsDisplay()
+	}
+	
+	/// The attributes used by this text label to draw the text in `labelText`
 	var attributes: [NSAttributedString.Key: Any]? = {
 		let font = UIFont.systemFont(ofSize: 20.0)
 		
@@ -16,33 +45,24 @@ class CustomTextLabel: UIView {
 		]
 	}()
 	
-	override func draw(_ rect: CGRect) {
-		super.draw(rect)
-		let attributedString = NSAttributedString(string: labelText, attributes: attributes)
-		attributedString.draw(in: rect)
-	}
+	/// The currently selected text range, which gets modified via UITextInput's callbacks
+	var currentSelectedTextRange: UITextRange? = CustomTextRange(startOffset: 0, endOffset: 0)
 	
-	override var intrinsicContentSize: CGSize {
-		let size = NSAttributedString(string: labelText, attributes: attributes).size()
-		return CGSize(width: ceil(size.width), height: ceil(size.height))
-	}
-	
-	var currentSelectedTextRange: UITextRange? = CustomTextRange(startIndex: 0, endIndex: 0)
-	
-	// MARK: First Responder
+	/// A text view should be allowed to become first responder
 	override var canBecomeFirstResponder: Bool {
 		true
 	}
 }
 
+/// `UITextInput` conformance for our `CustomTextLabel`
 extension CustomTextLabel: UITextInput {
 	
 	func text(in range: UITextRange) -> String? {
 		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition else {
 			fatalError()
 		}
-		let location =  max(rangeStart.index, 0)
-		let length = max(min(labelText.count - location, rangeEnd.index - location), 0)
+		let location =  max(rangeStart.offset, 0)
+		let length = max(min(labelText.count - location, rangeEnd.offset - location), 0)
 		
 		guard location < labelText.count,
 			let subrange = Range(NSRange(location: location, length:length), in: labelText) else {
@@ -54,13 +74,12 @@ extension CustomTextLabel: UITextInput {
 	
 	func replace(_ range: UITextRange, withText text: String) {
 		guard let range = range as? CustomTextRange,
-		let textSubrange = Range(NSRange(location: range.startIndex, length: range.endIndex - range.startIndex), in: self.labelText) else {
+		let textSubrange = Range(NSRange(location: range.startOffset, length: range.endOffset - range.startOffset), in: self.labelText) else {
 			fatalError()
 		}
 		
 		self.labelText.replaceSubrange(textSubrange, with: text)
-		setNeedsDisplay()
-		invalidateIntrinsicContentSize()
+		textDidChange()
 	}
 	
 	var selectedTextRange: UITextRange? {
@@ -94,18 +113,18 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	var beginningOfDocument: UITextPosition {
-		CustomTextPosition(index: 0)
+		CustomTextPosition(offset: 0)
 	}
 	
 	var endOfDocument: UITextPosition {
-		CustomTextPosition(index: labelText.count) // TODO: -1?
+		CustomTextPosition(offset: labelText.count) // TODO: -1?
 	}
 	
 	func textRange(from fromPosition: UITextPosition, to toPosition: UITextPosition) -> UITextRange? {
 		guard let fromPosition = fromPosition as? CustomTextPosition, let toPosition = toPosition as? CustomTextPosition else {
 			return nil
 		}
-		return CustomTextRange(startIndex: fromPosition.index, endIndex: toPosition.index)
+		return CustomTextRange(startOffset: fromPosition.offset, endOffset: toPosition.offset)
 	}
 	
 	func position(from position: UITextPosition, offset: Int) -> UITextPosition? {
@@ -113,14 +132,14 @@ extension CustomTextLabel: UITextInput {
 			return nil
 		}
 		
-		let proposedIndex = position.index + offset
+		let proposedIndex = position.offset + offset
 		
 		// return nil if proposed index is out of bounds
 		guard proposedIndex >= 0 && proposedIndex <= labelText.count else {
 			return nil
 		}
 		
-		return CustomTextPosition(index: proposedIndex)
+		return CustomTextPosition(offset: proposedIndex)
 	}
 	
 	func position(from position: UITextPosition, in direction: UITextLayoutDirection, offset: Int) -> UITextPosition? {
@@ -128,13 +147,13 @@ extension CustomTextLabel: UITextInput {
 			return nil
 		}
 		
-		var proposedIndex: Int = position.index
+		var proposedIndex: Int = position.offset
 		if direction == .left {
-			proposedIndex = position.index - offset
+			proposedIndex = position.offset - offset
 		}
 		
 		if direction == .right {
-			proposedIndex = position.index + offset
+			proposedIndex = position.offset + offset
 		}
 		
 		// return nil if proposed index is out of bounds
@@ -142,7 +161,7 @@ extension CustomTextLabel: UITextInput {
 			return nil
 		}
 	
-		return CustomTextPosition(index: proposedIndex)
+		return CustomTextPosition(offset: proposedIndex)
 
 	}
 	
@@ -166,7 +185,7 @@ extension CustomTextLabel: UITextInput {
 			return 0
 		}
 		
-		return toPosition.index - from.index
+		return toPosition.offset - from.offset
 	}
 	
 	var inputDelegate: UITextInputDelegate? {
@@ -203,9 +222,9 @@ extension CustomTextLabel: UITextInput {
 		
 		switch direction {
 		case .left, .up:
-			return CustomTextRange(startIndex: 0, endIndex: position.index)
+			return CustomTextRange(startOffset: 0, endOffset: position.offset)
 		case .right, .down:
-			return CustomTextRange(startIndex: position.index, endIndex: labelText.count)
+			return CustomTextRange(startOffset: position.offset, endOffset: labelText.count)
 		@unknown default:
 			fatalError()
 		}
@@ -227,13 +246,13 @@ extension CustomTextLabel: UITextInput {
 		
 		var initialXposition: CGFloat = 0
 		var rectWidth: CGFloat = 0
-		if rangeStart.index >= labelText.count {
+		if rangeStart.offset >= labelText.count {
 			initialXposition = self.intrinsicContentSize.width
 		} else {
-			let startTextIndex = labelText.index(labelText.startIndex, offsetBy: rangeStart.index)
-			let endTextIndex = labelText.index(startTextIndex, offsetBy: max(rangeEnd.index - rangeStart.index - 1, 0))
+			let startTextIndex = labelText.index(labelText.startIndex, offsetBy: rangeStart.offset)
+			let endTextIndex = labelText.index(startTextIndex, offsetBy: max(rangeEnd.offset - rangeStart.offset - 1, 0))
 			
-			let preSubstring = labelText.prefix(upTo: labelText.index(labelText.startIndex, offsetBy: rangeStart.index))
+			let preSubstring = labelText.prefix(upTo: labelText.index(labelText.startIndex, offsetBy: rangeStart.offset))
 			let preSize = NSAttributedString(string: String(preSubstring), attributes: attributes).size()
 			let actualSubstring = labelText[startTextIndex...endTextIndex]
 			
@@ -250,16 +269,14 @@ extension CustomTextLabel: UITextInput {
 				return bounds
 		}
 		
-		let substring = labelText.prefix(max(position.index, 0))
+		let substring = labelText.prefix(max(position.offset, 0))
 		let size = NSAttributedString(string: String(substring), attributes: attributes).size()
 		return CGRect(x: size.width, y: 0, width: CustomTextLabel.caretWidth, height: font.lineHeight)
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition else {
-			fatalError()
-		}
-		return [CustomTextSelectionRect(rect: firstRect(for: range), writingDirection: .leftToRight, containsStart: rangeStart.index == 0, containsEnd: rangeEnd.index == labelText.count, isVertical: false)]
+		// TODO: Multi-line support
+		return [CustomTextSelectionRect(rect: firstRect(for: range), writingDirection: .leftToRight, containsStart: true, containsEnd: true, isVertical: false)]
 	}
 	
 	func closestPosition(to point: CGPoint) -> UITextPosition? {
@@ -270,15 +287,15 @@ extension CustomTextLabel: UITextInput {
 			if totalWidth <= point.x && point.x < totalWidth + characterSize.width {
 				// Selection ocurred inside this character, should we go one back or one forward?
 				if point.x - totalWidth > characterSize.width / 2.0 {
-					return CustomTextPosition(index: index + 1)
+					return CustomTextPosition(offset: index + 1)
 				} else {
-					return CustomTextPosition(index: index)
+					return CustomTextPosition(offset: index)
 				}
 			} else {
 				totalWidth = totalWidth + characterSize.width
 			}
 		}
-		return CustomTextPosition(index: 0)
+		return CustomTextPosition(offset: 0)
 	}
 	
 	func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
@@ -294,7 +311,7 @@ extension CustomTextLabel: UITextInput {
 		guard let textPosition = closestPosition(to: point) as? CustomTextPosition else {
 			return nil
 		}
-		return CustomTextRange(startIndex: textPosition.index, endIndex: textPosition.index + 1)
+		return CustomTextRange(startOffset: textPosition.offset, endOffset: textPosition.offset + 1)
 	}
 	
 	var hasText: Bool {
@@ -304,13 +321,12 @@ extension CustomTextLabel: UITextInput {
 	func insertText(_ text: String) {
 		if let currentSelectedTextRange = currentSelectedTextRange {
 			replace(currentSelectedTextRange, withText: text)
-			invalidateIntrinsicContentSize()
-			setNeedsDisplay()
+			textDidChange()
 		}
 		
 		if let start = currentSelectedTextRange?.start as? CustomTextPosition {
-			let newSelectionLocation = start.index + text.count
-			currentSelectedTextRange = CustomTextRange(startIndex: newSelectionLocation, endIndex: newSelectionLocation)
+			let newSelectionLocation = start.offset + text.count
+			currentSelectedTextRange = CustomTextRange(startOffset: newSelectionLocation, endOffset: newSelectionLocation)
 		}
 		
 	}
@@ -323,26 +339,22 @@ extension CustomTextLabel: UITextInput {
 		
 		var newSelectionIndex = 0
 		if currentSelectedTextRange.isEmpty { // empty selection, just use the start position and move back by one if possible
-			if let start = currentSelectedTextRange.start as? CustomTextPosition, start.index > 0, start.index <= labelText.count {
-				if start.index - 1 > 0 {
-					if let subrange = Range(NSRange(location: start.index - 1, length: 1), in: labelText) {
+			if let start = currentSelectedTextRange.start as? CustomTextPosition, start.offset > 0, start.offset <= labelText.count {
+				if start.offset - 1 > 0 {
+					if let subrange = Range(NSRange(location: start.offset - 1, length: 1), in: labelText) {
 						labelText.removeSubrange(subrange)
-						newSelectionIndex = start.index - 1
+						newSelectionIndex = start.offset - 1
 					}
 				}
 			}
 		} else if let start = currentSelectedTextRange.start as? CustomTextPosition, let end = currentSelectedTextRange.end as? CustomTextPosition { // there is a selection
-			if let subrange = Range(NSRange(location: start.index, length: end.index - start.index), in: labelText) {
+			if let subrange = Range(NSRange(location: start.offset, length: end.offset - start.offset), in: labelText) {
 				labelText.removeSubrange(subrange)
-				newSelectionIndex = start.index
+				newSelectionIndex = start.offset
 			}
 		}
 		
-		self.currentSelectedTextRange = CustomTextRange(startIndex: newSelectionIndex, endIndex: newSelectionIndex)
-		
-		invalidateIntrinsicContentSize()
-		setNeedsDisplay()
+		self.currentSelectedTextRange = CustomTextRange(startOffset: newSelectionIndex, endOffset: newSelectionIndex)
+		textDidChange()
 	}
-	
-	
 }

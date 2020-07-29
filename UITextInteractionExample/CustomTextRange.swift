@@ -2,28 +2,37 @@
 
 import UIKit
 
+/// A `UITextRange` subclass for use with `UITextInput`
 class CustomTextRange: UITextRange {
 	
-	let startIndex: Int
-	let endIndex: Int
-
-	init(startIndex: Int, endIndex: Int) {
-		self.startIndex = startIndex
-		self.endIndex = endIndex
+	/// The start offset of this range
+	let startOffset: Int
+	/// The end offset of this range
+	let endOffset: Int
+	
+	/// Create a `CustomTextRange` with the given offsets
+	/// - Parameters:
+	///   - startOffset: The start offset of this range
+	///   - endOffset: The end offset of this range
+	init(startOffset: Int, endOffset: Int) {
+		self.startOffset = startOffset
+		self.endOffset = endOffset
 		
 		super.init()
 	}
 	
+	// MARK: UITextRange Overrides
+	
 	override var isEmpty: Bool {
-		return startIndex == endIndex
+		return startOffset == endOffset
 	}
 	
 	override var start: UITextPosition {
-		return CustomTextPosition(index: startIndex)
+		return CustomTextPosition(offset: startOffset)
 	}
 	
 	override var end: UITextPosition {
-		return CustomTextPosition(index: endIndex)
+		return CustomTextPosition(offset: endOffset)
 	}
 	
 }
