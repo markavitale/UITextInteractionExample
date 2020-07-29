@@ -73,7 +73,7 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	var markedTextRange: UITextRange? {
-		return selectedTextRange // TODO: confirm this is ok
+		return nil // TODO: confirm this is ok
 	}
 	
 	var markedTextStyle: [NSAttributedString.Key : Any]? {
