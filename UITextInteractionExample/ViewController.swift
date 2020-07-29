@@ -8,8 +8,7 @@ class ViewController: UIViewController {
 		view = UIView(frame: .zero)
 		
 		// Create a custom text label and add it as a subview
-		let customTextLabel = CustomTextLabel(frame: .zero)
-		customTextLabel.labelText = "Sphinx of black quartz, judge my vow."
+		let customTextLabel = CustomTextLabel(labelText: "Sphinx of black quartz, judge my vow.")
 		customTextLabel.translatesAutoresizingMaskIntoConstraints = false
 		view.addSubview(customTextLabel)
 		

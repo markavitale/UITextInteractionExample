@@ -5,6 +5,31 @@ import UIKit
 /// A simple custom text label that conforms to `UITextInput` for use with `UITextInteraction`
 class CustomTextLabel: UIView {
 	
+	/// Primary initializer that takes in the labelText to display for this label
+	/// - Parameter labelText: the string to display
+	init(labelText: String) {
+		self.labelText = labelText
+		super.init(frame: .zero)
+		commonInit()
+	}
+	
+	/// Initializer for using `CustomTextLabel` with interface builder
+	/// - Parameter coder: An unarchiver object
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+		commonInit()
+	}
+	
+	/// A convenience initializer for a custom text label with an empty labelText
+	convenience init() {
+		self.init(labelText: "")
+	}
+	
+	/// Common code to be called after initialization
+	private func commonInit() {
+		self.backgroundColor = .systemBackground
+	}
+	
 	/// The width of the caret rect for use in `UITextInput` conformance
 	static let caretWidth: CGFloat = 2.0
 	
