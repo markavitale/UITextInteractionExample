@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  xcodebuild_and_test:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_configuration: ['Debug', 'Release']
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build and Test Debug
+      run: xcodebuild -project UITextInteractionExample.xcodeproj/ -scheme UITextInteractionExample -configuration ${{ matrix.build_configuration }} -sdk iphonesimulator test -destination "platform=iOS Simulator,name=iPad Pro (11-inch) (2nd generation)"
