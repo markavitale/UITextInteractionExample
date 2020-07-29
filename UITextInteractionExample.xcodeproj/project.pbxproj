@@ -38,6 +38,7 @@
 		8F5CCCF024CF30800039A531 /* CustomTextPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextPosition.swift; sourceTree = "<group>"; };
 		8F5CCCF324CF3C9D0039A531 /* CustomTextRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextRange.swift; sourceTree = "<group>"; };
 		8F5CCCF624CF72A80039A531 /* CustomTextSelectionRect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextSelectionRect.swift; sourceTree = "<group>"; };
+		8F730D9724D1F9DB0041A0D4 /* UITextInteractionExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UITextInteractionExample.entitlements; sourceTree = "<group>"; };
 		8F9CF98924CB5FB7001EFBF3 /* UITextInteractionExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UITextInteractionExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F9CF98C24CB5FB7001EFBF3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8F9CF98E24CB5FB7001EFBF3 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -101,6 +102,7 @@
 				8F9CF99524CB5FB7001EFBF3 /* Assets.xcassets */,
 				8F9CF99724CB5FB7001EFBF3 /* LaunchScreen.storyboard */,
 				8F9CF99A24CB5FB7001EFBF3 /* Info.plist */,
+				8F730D9724D1F9DB0041A0D4 /* UITextInteractionExample.entitlements */,
 			);
 			path = UITextInteractionExample;
 			sourceTree = "<group>";
@@ -374,6 +376,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UITextInteractionExample/UITextInteractionExample.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = UITextInteractionExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -382,6 +386,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.markavitale.UITextInteractionExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -391,6 +396,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UITextInteractionExample/UITextInteractionExample.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = UITextInteractionExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -399,6 +406,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.markavitale.UITextInteractionExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
