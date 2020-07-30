@@ -64,7 +64,7 @@ class CustomTextLabel: UIView {
 		let font = UIFont.systemFont(ofSize: 20.0)
 		
 		return [
-			.foregroundColor: UIColor.red,
+			.foregroundColor: UIColor.label,
 			.backgroundColor: UIColor.systemBackground,
 			.font: font,
 		]
