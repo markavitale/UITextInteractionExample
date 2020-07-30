@@ -77,6 +77,13 @@ class CustomTextLabel: UIView {
 	override var canBecomeFirstResponder: Bool {
 		true
 	}
+	
+	/// Return an array of substrings split on the newline character
+	/// - Parameter string: the string to be split
+	/// - Returns: an array of the substrings, split on `\n`
+	static fileprivate func linesFromString(string: String) -> [Substring] {
+		return string.split(separator: "\n")
+	}
 }
 
 /// `UITextInput` conformance for our `CustomTextLabel`
@@ -290,13 +297,33 @@ extension CustomTextLabel: UITextInput {
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
 		guard let position = position as? CustomTextPosition,
-			let font = attributes?[.font] as? UIFont else {
-				return bounds
+			  let font = attributes?[.font] as? UIFont else {
+			fatalError()
 		}
 		
-		let substring = labelText.prefix(max(position.offset, 0))
+		// Turn our text position into an index into `labelText`
+		let labelTextPositionIndex = labelText.index(labelText.startIndex, offsetBy: max(position.offset, 0))
+		
+		// Split `labelText` into an array of substrings where each line is a substring
+		let lines = CustomTextLabel.linesFromString(string: labelText)
+		
+		// Figure out which line contains our text position
+		guard let lineIndex = lines.firstIndex(where: {
+			// Check if our overall index into the string is on this line
+			$0.startIndex <= labelTextPositionIndex && labelTextPositionIndex <= $0.endIndex
+		}) else {
+			// Our index we're looking for isn't contained in labelString?
+			fatalError()
+		}
+		
+		// Get the substring from the beginning of that line up to our text position
+		let substring = lines[lineIndex].prefix(upTo: labelTextPositionIndex)
+		
+		// Check the size of that substring, our caret should draw just to the right edge of this range
 		let size = NSAttributedString(string: String(substring), attributes: attributes).size()
-		return CGRect(x: size.width, y: 0, width: CustomTextLabel.caretWidth, height: font.lineHeight)
+		
+		// Make the caret rect, accounting for the which line we're on
+		return CGRect(x: size.width, y:font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: font.lineHeight)
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
