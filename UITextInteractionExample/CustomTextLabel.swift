@@ -166,7 +166,7 @@ extension CustomTextLabel: UITextInput {
 		
 		let proposedIndex = position.offset + offset
 		
-		// return nil if proposed index is out of bounds
+		// return nil if proposed index is out of bounds, per documentation
 		guard proposedIndex >= 0 && proposedIndex <= labelText.count else {
 			return nil
 		}
@@ -322,7 +322,7 @@ extension CustomTextLabel: UITextInput {
 		// Check the size of that substring, our caret should draw just to the right edge of this range
 		let size = NSAttributedString(string: String(substring), attributes: attributes).size()
 		
-		// Make the caret rect, accounting for the which line we're on
+		// Make the caret rect, accounting for which line we're on
 		return CGRect(x: size.width, y:font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: font.lineHeight)
 	}
 	
