@@ -31,7 +31,10 @@ class CustomTextLabel: UIView {
 	}
 	
 	/// The width of the caret rect for use in `UITextInput` conformance
-	static let caretWidth: CGFloat = 2.0
+	fileprivate static let caretWidth: CGFloat = 2.0
+	
+	/// The font used by the the `CustomTextLabel`
+	fileprivate static let font = UIFont.systemFont(ofSize: 20.0)
 	
 	/// The text to be drawn to screen by this `CustomTextLabel`
 	var labelText: String = "" {
@@ -61,12 +64,10 @@ class CustomTextLabel: UIView {
 	
 	/// The attributes used by this text label to draw the text in `labelText`
 	var attributes: [NSAttributedString.Key: Any]? = {
-		let font = UIFont.systemFont(ofSize: 20.0)
-		
 		return [
 			.foregroundColor: UIColor.label,
 			.backgroundColor: UIColor.systemBackground,
-			.font: font,
+			.font: CustomTextLabel.font,
 		]
 	}()
 	
@@ -149,7 +150,7 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	var endOfDocument: UITextPosition {
-		CustomTextPosition(offset: labelText.count) // TODO: -1?
+		CustomTextPosition(offset: labelText.count)
 	}
 	
 	func textRange(from fromPosition: UITextPosition, to toPosition: UITextPosition) -> UITextRange? {
@@ -272,7 +273,8 @@ extension CustomTextLabel: UITextInput {
 		
 	// MARK: - Geometery
 	func firstRect(for range: UITextRange) -> CGRect {
-		guard let rangeStart = range.start as? CustomTextPosition, let rangeEnd = range.end as? CustomTextPosition, let font = attributes?[.font] as? UIFont else {
+		guard let rangeStart = range.start as? CustomTextPosition,
+			  let rangeEnd = range.end as? CustomTextPosition else {
 			return .zero
 		}
 		
@@ -295,22 +297,19 @@ extension CustomTextLabel: UITextInput {
 			let preSize = NSAttributedString(string: String(preSubstring), attributes: attributes).size()
 			
 			// Get the substring from the start of our range to the end of the line
-			let actualSubstring = startLine[startTextIndex...min(endTextIndex, startLine.endIndex)]
+			let selectionLineEndIndex = min(endTextIndex, startLine.index(before: startLine.endIndex))
+			let actualSubstring = startLine[startTextIndex...selectionLineEndIndex]
 			let actualSize = NSAttributedString(string: String(actualSubstring), attributes: attributes).size()
 			
 			initialXposition = preSize.width
 			rectWidth = actualSize.width
 		}
 				
-		// Determine the y position
-		return CGRect(x: initialXposition, y: CGFloat(startLineIndex)*font.lineHeight, width: rectWidth, height: font.lineHeight)
+		// Return the rect
+		return CGRect(x: initialXposition, y: CGFloat(startLineIndex)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
 	}
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
-		guard let font = attributes?[.font] as? UIFont else {
-			fatalError()
-		}
-		
 		// Turn our text position into an index into `labelText`
 		let labelTextPositionIndex = stringIndex(from: position)
 
@@ -324,7 +323,7 @@ extension CustomTextLabel: UITextInput {
 		let size = NSAttributedString(string: String(substring), attributes: attributes).size()
 		
 		// Make the caret rect, accounting for which line we're on
-		return CGRect(x: size.width, y:font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: font.lineHeight)
+		return CGRect(x: size.width, y:CustomTextLabel.font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: CustomTextLabel.font.lineHeight)
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
@@ -333,17 +332,25 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	func closestPosition(to point: CGPoint) -> UITextPosition? {
+		let lines = CustomTextLabel.linesFromString(string: labelText)
+		// Get a valid line index
+		let lineIndex = max(min(Int(point.y /  CustomTextLabel.font.lineHeight), lines.count - 1), 0)
+		// Get the line from that index
+		let line = lines[lineIndex]
+		
 		var totalWidth: CGFloat = 0.0
-		for (index, character) in labelText.enumerated() {
+		for (index, character) in line.enumerated() {
 			let characterSize = NSAttributedString(string: String(character), attributes: attributes).size()
 
 			if totalWidth <= point.x && point.x < totalWidth + characterSize.width {
 				// Selection ocurred inside this character, should we go one back or one forward?
-				if point.x - totalWidth > characterSize.width / 2.0 {
-					return CustomTextPosition(offset: index + 1)
-				} else {
-					return CustomTextPosition(offset: index)
-				}
+				let offset = point.x - totalWidth > characterSize.width / 2.0
+					? index + 1
+					: index
+				// Calculate our offset in terms of the full string, not just this line.
+				let labelTextIndex = line.index(line.startIndex, offsetBy: offset)
+				return CustomTextPosition(offset: labelText.distance(from: labelText.startIndex, to: labelTextIndex))
+				
 			} else {
 				totalWidth = totalWidth + characterSize.width
 			}
@@ -381,7 +388,6 @@ extension CustomTextLabel: UITextInput {
 			let newSelectionLocation = start.offset + text.count
 			currentSelectedTextRange = CustomTextRange(startOffset: newSelectionLocation, endOffset: newSelectionLocation)
 		}
-		
 	}
 	
 	func deleteBackward() {
