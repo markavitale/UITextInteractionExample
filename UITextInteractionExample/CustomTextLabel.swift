@@ -87,6 +87,8 @@ class CustomTextLabel: UIView {
 	}
 }
 
+// MARK: - UITextInput Conformance
+
 /// `UITextInput` conformance for our `CustomTextLabel`
 extension CustomTextLabel: UITextInput {
 	
@@ -98,7 +100,7 @@ extension CustomTextLabel: UITextInput {
 		let length = max(min(labelText.count - location, rangeEnd.offset - location), 0)
 		
 		guard location < labelText.count,
-			let subrange = Range(NSRange(location: location, length:length), in: labelText) else {
+			  let subrange = Range(NSRange(location: location, length:length), in: labelText) else {
 			return nil
 		}
 		
@@ -107,7 +109,7 @@ extension CustomTextLabel: UITextInput {
 	
 	func replace(_ range: UITextRange, withText text: String) {
 		guard let range = range as? CustomTextRange,
-		let textSubrange = Range(NSRange(location: range.startOffset, length: range.endOffset - range.startOffset), in: self.labelText) else {
+			  let textSubrange = Range(NSRange(location: range.startOffset, length: range.endOffset - range.startOffset), in: self.labelText) else {
 			fatalError()
 		}
 		
@@ -193,9 +195,8 @@ extension CustomTextLabel: UITextInput {
 		guard proposedIndex >= 0 && proposedIndex <= labelText.count else {
 			return nil
 		}
-	
+		
 		return CustomTextPosition(offset: proposedIndex)
-
 	}
 	
 	func compare(_ position: UITextPosition, to other: UITextPosition) -> ComparisonResult {
@@ -270,7 +271,7 @@ extension CustomTextLabel: UITextInput {
 	func setBaseWritingDirection(_ writingDirection: NSWritingDirection, for range: UITextRange) {
 		// Only support natural alignment
 	}
-		
+	
 	// MARK: - Geometery
 	func firstRect(for range: UITextRange) -> CGRect {
 		guard let rangeStart = range.start as? CustomTextPosition,
@@ -304,7 +305,7 @@ extension CustomTextLabel: UITextInput {
 			initialXposition = preSize.width
 			rectWidth = actualSize.width
 		}
-				
+		
 		// Return the rect
 		return CGRect(x: initialXposition, y: CGFloat(startLineIndex)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
 	}
@@ -312,7 +313,7 @@ extension CustomTextLabel: UITextInput {
 	func caretRect(for position: UITextPosition) -> CGRect {
 		// Turn our text position into an index into `labelText`
 		let labelTextPositionIndex = stringIndex(from: position)
-
+		
 		// Determine what line index and line our text position is on
 		let (lineIndex, line) = indexAndLine(from: position)
 		
@@ -341,7 +342,7 @@ extension CustomTextLabel: UITextInput {
 		var totalWidth: CGFloat = 0.0
 		for (index, character) in line.enumerated() {
 			let characterSize = NSAttributedString(string: String(character), attributes: attributes).size()
-
+			
 			if totalWidth <= point.x && point.x < totalWidth + characterSize.width {
 				// Selection ocurred inside this character, should we go one back or one forward?
 				let offset = point.x - totalWidth > characterSize.width / 2.0
@@ -360,8 +361,8 @@ extension CustomTextLabel: UITextInput {
 	
 	func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
 		guard let proposedPosition = closestPosition(to: point) as? CustomTextPosition,
-			let rangeStart = range.start as? CustomTextPosition,
-			let rangeEnd = range.end as? CustomTextPosition else {
+			  let rangeStart = range.start as? CustomTextPosition,
+			  let rangeEnd = range.end as? CustomTextPosition else {
 			return nil
 		}
 		return min(max(proposedPosition, rangeStart), rangeEnd)
@@ -373,6 +374,8 @@ extension CustomTextLabel: UITextInput {
 		}
 		return CustomTextRange(startOffset: textPosition.offset, endOffset: textPosition.offset + 1)
 	}
+	
+	// MARK: - UIKeyInput
 	
 	var hasText: Bool {
 		!labelText.isEmpty
@@ -417,7 +420,7 @@ extension CustomTextLabel: UITextInput {
 		textDidChange()
 	}
 	
-	// MARK: Helpers
+	// MARK: - Helpers
 	
 	/// Return the line index and the substring representing the line of a given `UITextPosition`
 	/// - Parameter position: The position used to determine the line and index
