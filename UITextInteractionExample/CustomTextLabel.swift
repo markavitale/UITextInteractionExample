@@ -83,7 +83,7 @@ class CustomTextLabel: UIView {
 	/// - Parameter string: the string to be split
 	/// - Returns: an array of the substrings, split on `\n`
 	static fileprivate func linesFromString(string: String) -> [Substring] {
-		return string.split(separator: "\n")
+		return string.split(separator: "\n", omittingEmptySubsequences: false)
 	}
 }
 
@@ -345,7 +345,7 @@ extension CustomTextLabel: UITextInput {
 		var selectionRects: [CustomTextSelectionRect] = []
 		for (index, line) in lines.enumerated() {
 			// Check if this is a valid line for selection
-			if index >= startLineIndex && index <= endLineIndex {
+			if !line.isEmpty && index >= startLineIndex && index <= endLineIndex {
 				let containsStart = line.startIndex <= startTextIndex && startTextIndex < line.endIndex
 				let containsEnd = line.startIndex <= endTextIndex && endTextIndex < line.endIndex
 				
