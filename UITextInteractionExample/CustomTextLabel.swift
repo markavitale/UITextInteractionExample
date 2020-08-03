@@ -283,12 +283,12 @@ extension CustomTextLabel: UITextInput {
 		let (startLineIndex, startLine) = indexAndLine(from: rangeStart)
 		
 		// Determine the x position
-		var initialXposition: CGFloat = 0
+		var initialXPosition: CGFloat = 0
 		var rectWidth: CGFloat = 0
 		
 		// If our start and end line indices are the same, just get the whole range
 		if rangeStart.offset >= labelText.count {
-			initialXposition = self.intrinsicContentSize.width
+			initialXPosition = self.intrinsicContentSize.width
 		} else {
 			let startTextIndex = labelText.index(labelText.startIndex, offsetBy: rangeStart.offset)
 			let endTextIndex = labelText.index(startTextIndex, offsetBy: max(rangeEnd.offset - rangeStart.offset - 1, 0))
@@ -302,12 +302,12 @@ extension CustomTextLabel: UITextInput {
 			let actualSubstring = startLine[startTextIndex...selectionLineEndIndex]
 			let actualSize = NSAttributedString(string: String(actualSubstring), attributes: attributes).size()
 			
-			initialXposition = preSize.width
+			initialXPosition = preSize.width
 			rectWidth = actualSize.width
 		}
 		
 		// Return the rect
-		return CGRect(x: initialXposition, y: CGFloat(startLineIndex)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
+		return CGRect(x: initialXPosition, y: CGFloat(startLineIndex)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
 	}
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
@@ -328,8 +328,52 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-		// TODO: Multi-line support
-		return [CustomTextSelectionRect(rect: firstRect(for: range), writingDirection: .leftToRight, containsStart: true, containsEnd: true, isVertical: false)]
+		guard let rangeStart = range.start as? CustomTextPosition,
+			  let rangeEnd = range.end as? CustomTextPosition else {
+			fatalError()
+		}
+		
+		let lines = CustomTextLabel.linesFromString(string: labelText)
+		// Determine which line index and line the range starts and ends in
+		let (startLineIndex, _) = indexAndLine(from: rangeStart)
+		let (endLineIndex, _) = indexAndLine(from: rangeEnd)
+		
+		// Translate our range indexes into text indexes
+		let startTextIndex = labelText.index(labelText.startIndex, offsetBy: rangeStart.offset)
+		let endTextIndex = labelText.index(startTextIndex, offsetBy: max(rangeEnd.offset - rangeStart.offset - 1, 0))
+		
+		var selectionRects: [CustomTextSelectionRect] = []
+		for (index, line) in lines.enumerated() {
+			// Check if this is a valid line for selection
+			if index >= startLineIndex && index <= endLineIndex {
+				let containsStart = line.startIndex <= startTextIndex && startTextIndex < line.endIndex
+				let containsEnd = line.startIndex <= endTextIndex && endTextIndex < line.endIndex
+				
+				// Get the substring from the start of our range to the end of the line
+				let selectionLineStartIndex = max(startTextIndex,line.startIndex)
+				let selectionLineEndIndex = max(min(endTextIndex, line.index(before: line.endIndex)), selectionLineStartIndex)
+				let actualSubstring = line[selectionLineStartIndex...selectionLineEndIndex]
+				let actualSize = NSAttributedString(string: String(actualSubstring), attributes: attributes).size()
+				
+				// Set the initial x position
+				var initialXPosition: CGFloat = 0
+				if containsStart {
+					// Get the substring from the start of the line we're on to the start of our selection
+					let preSubstring = line.prefix(upTo: labelText.index(labelText.startIndex, offsetBy: rangeStart.offset))
+					let preSize = NSAttributedString(string: String(preSubstring), attributes: attributes).size()
+					initialXPosition = preSize.width
+				}
+				
+				let rectWidth = actualSize.width
+				
+				// Make the selection rect for this line
+				let rect = CGRect(x: initialXPosition, y: CGFloat(index)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
+				selectionRects.append(CustomTextSelectionRect(rect: rect, writingDirection: .leftToRight, containsStart: containsStart, containsEnd: containsEnd, isVertical: false))
+			}
+		}
+		
+		// Return our constructed array
+		return selectionRects
 	}
 	
 	func closestPosition(to point: CGPoint) -> UITextPosition? {
