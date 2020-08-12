@@ -74,7 +74,6 @@ class ViewController: UIViewController {
 	/// The initial text to populate our `CustomTextLabel`
 	private static let initialText = """
 	Sphinx of black quartz, judge my vow.
-	Pack my box with five dozen liquor jugs.
 	"""
 }
 

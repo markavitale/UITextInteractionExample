@@ -45,15 +45,29 @@ class CustomTextLabel: UIView {
 	
 	/// A simple draw call override that uses `NSAttributedString` to draw `labelText` with `attributes`
 	override func draw(_ rect: CGRect) {
-		super.draw(rect)
+		guard let context = UIGraphicsGetCurrentContext() else {
+			return
+		}
+		context.saveGState()
+		defer {
+			context.restoreGState()
+		}
+		let translatedRect = rect.applying(CGAffineTransform(translationX: rect.width / 2, y: -rect.height / 2))
+		let rotatedRect = translatedRect.applying(CGAffineTransform(rotationAngle: .pi / 4))
+		
+		super.draw(rotatedRect)
+		// Rotate our whole drawing context
+		context.rotate(by: .pi / 4)
 		let attributedString = NSAttributedString(string: labelText, attributes: attributes)
-		attributedString.draw(in: rect)
+		attributedString.draw(in: rotatedRect)
 	}
 	
 	/// An intrinsicContentSize override to size this view based on the size of `labelText` when drawn with `attributes`
 	override var intrinsicContentSize: CGSize {
 		let size = NSAttributedString(string: labelText, attributes: attributes).size()
-		return CGSize(width: ceil(size.width), height: ceil(size.height))
+		// Account for the rotation when giving our size
+		let rotatedSize = size.applying(CGAffineTransform(rotationAngle: .pi / 4))
+		return CGSize(width: ceil(rotatedSize.width), height: ceil(rotatedSize.height))
 	}
 	
 	/// A helper function to call when our text contents have changed
@@ -306,8 +320,9 @@ extension CustomTextLabel: UITextInput {
 			rectWidth = actualSize.width
 		}
 		
-		// Return the rect
-		return CGRect(x: initialXPosition, y: CGFloat(startLineIndex)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
+		// Return the rect, accounting for the rotation
+		let returnRect = CGRect(x: initialXPosition, y: CGFloat(startLineIndex)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
+		return returnRect.applying(CGAffineTransform(rotationAngle: .pi / 4))
 	}
 	
 	func caretRect(for position: UITextPosition) -> CGRect {
@@ -323,8 +338,11 @@ extension CustomTextLabel: UITextInput {
 		// Check the size of that substring, our caret should draw just to the right edge of this range
 		let size = NSAttributedString(string: String(substring), attributes: attributes).size()
 		
-		// Make the caret rect, accounting for which line we're on
-		return CGRect(x: size.width, y:CustomTextLabel.font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: CustomTextLabel.font.lineHeight)
+		// Make the caret rect, accounting for which line we're on and the rotation.
+		let caretRect = CGRect(x: size.width, y:CustomTextLabel.font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: CustomTextLabel.font.lineHeight)
+		let translatedCaretRect = caretRect.applying(CGAffineTransform(translationX: caretRect.size.width / 2, y: -caretRect.size.height / 2))
+
+		return translatedCaretRect.applying(CGAffineTransform(rotationAngle: .pi / 4))
 	}
 	
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
@@ -366,8 +384,8 @@ extension CustomTextLabel: UITextInput {
 				
 				let rectWidth = actualSize.width
 				
-				// Make the selection rect for this line
-				let rect = CGRect(x: initialXPosition, y: CGFloat(index)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
+				// Make the selection rect for this line, applying the rotation transform
+				let rect = CGRect(x: initialXPosition, y: CGFloat(index)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight).applying(CGAffineTransform(rotationAngle: .pi / 4))
 				selectionRects.append(CustomTextSelectionRect(rect: rect, writingDirection: .leftToRight, containsStart: containsStart, containsEnd: containsEnd, isVertical: false))
 			}
 		}
@@ -377,6 +395,8 @@ extension CustomTextLabel: UITextInput {
 	}
 	
 	func closestPosition(to point: CGPoint) -> UITextPosition? {
+		// Convert our transformed point back to a standard flat position for easier text index testing
+		let point = point.applying(CGAffineTransform(rotationAngle: -.pi / 4))
 		let lines = CustomTextLabel.linesFromString(string: labelText)
 		// Get a valid line index
 		let lineIndex = max(min(Int(point.y /  CustomTextLabel.font.lineHeight), lines.count - 1), 0)
