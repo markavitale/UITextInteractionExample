@@ -65,8 +65,8 @@ class CustomTextLabel: UIView {
 	/// The attributes used by this text label to draw the text in `labelText`
 	var attributes: [NSAttributedString.Key: Any]? = {
 		return [
-			.foregroundColor: UIColor.label,
-			.backgroundColor: UIColor.systemBackground,
+			.foregroundColor: UIColor.white,
+			.backgroundColor: UIColor.systemBlue,
 			.font: CustomTextLabel.font,
 		]
 	}()
