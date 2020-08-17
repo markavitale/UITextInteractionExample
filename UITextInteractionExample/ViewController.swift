@@ -37,16 +37,28 @@ class ViewController: UIViewController {
 		labelModifierControls.alignment = .leading
 		view.addSubview(labelModifierControls)
 		
-		// Add the CustomTextLabel as a subview
-		customTextLabel.translatesAutoresizingMaskIntoConstraints = false
-		view.addSubview(customTextLabel)
+		// Make a scroll view to contain our UITextInteraction
+		let scrollView = UIScrollView(frame: .zero)
+		scrollView.contentSize = customTextLabel.intrinsicContentSize
+		scrollView.translatesAutoresizingMaskIntoConstraints = false
 		
+		// Add the CustomTextLabel as a subview of our scrollview
+		customTextLabel.translatesAutoresizingMaskIntoConstraints = false
+		scrollView.addSubview(customTextLabel)
+		
+		view.addSubview(scrollView)
 		
 		NSLayoutConstraint.activate([
 			labelModifierControls.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
 			labelModifierControls.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-			customTextLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 200),
-			customTextLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 200),
+			scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 200),
+			scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 200),
+			scrollView.widthAnchor.constraint(equalToConstant: 300),
+			scrollView.heightAnchor.constraint(equalToConstant: 150),
+			customTextLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+			customTextLabel.topAnchor.constraint(equalTo: scrollView.topAnchor),
+			customTextLabel.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+			customTextLabel.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
 		])
 		
 		updateInteractionMode()
@@ -75,6 +87,14 @@ class ViewController: UIViewController {
 	private static let initialText = """
 	Sphinx of black quartz, judge my vow.
 	Pack my box with five dozen liquor jugs.
+	A quick brown fox jumps over the lazy dog.
+	A quart jar of oil mixed with zinc oxide makes a very bright paint.
+	The five boxing wizards jump quickly.
+	Sphinx of black quartz, judge my vow.
+	Pack my box with five dozen liquor jugs.
+	A quick brown fox jumps over the lazy dog.
+	A quart jar of oil mixed with zinc oxide makes a very bright paint.
+	The five boxing wizards jump quickly.
 	"""
 }
 
