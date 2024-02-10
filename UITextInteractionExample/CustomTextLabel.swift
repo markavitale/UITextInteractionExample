@@ -42,7 +42,7 @@ class CustomTextLabel: UIView {
 			textDidChange()
 		}
 	}
-	
+
 	/// A simple draw call override that uses `NSAttributedString` to draw `labelText` with `attributes`
 	override func draw(_ rect: CGRect) {
 		guard let context = UIGraphicsGetCurrentContext() else {
@@ -338,13 +338,14 @@ extension CustomTextLabel: UITextInput {
 		// Check the size of that substring, our caret should draw just to the right edge of this range
 		let size = NSAttributedString(string: String(substring), attributes: attributes).size()
 		
-		// Make the caret rect, accounting for which line we're on and the rotation.
-		let caretRect = CGRect(x: size.width, y:CustomTextLabel.font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: CustomTextLabel.font.lineHeight)
-		let translatedCaretRect = caretRect.applying(CGAffineTransform(translationX: caretRect.size.width / 2, y: -caretRect.size.height / 2))
-
-		return translatedCaretRect.applying(CGAffineTransform(rotationAngle: .pi / 4))
+		// Make the caret rect, accounting for which line we're on
+		return CGRect(x: size.width, y:CustomTextLabel.font.lineHeight * CGFloat(lineIndex), width: CustomTextLabel.caretWidth, height: CustomTextLabel.font.lineHeight)
 	}
-	
+
+	func caretTransform(for position: UITextPosition) -> CGAffineTransform {
+		return CGAffineTransform(rotationAngle: .pi / 4)
+	}
+
 	func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
 		guard let rangeStart = range.start as? CustomTextPosition,
 			  let rangeEnd = range.end as? CustomTextPosition else {
@@ -385,8 +386,8 @@ extension CustomTextLabel: UITextInput {
 				let rectWidth = actualSize.width
 				
 				// Make the selection rect for this line, applying the rotation transform
-				let rect = CGRect(x: initialXPosition, y: CGFloat(index)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight).applying(CGAffineTransform(rotationAngle: .pi / 4))
-				selectionRects.append(CustomTextSelectionRect(rect: rect, writingDirection: .leftToRight, containsStart: containsStart, containsEnd: containsEnd, isVertical: false))
+				let rect = CGRect(x: initialXPosition, y: CGFloat(index)*CustomTextLabel.font.lineHeight, width: rectWidth, height: CustomTextLabel.font.lineHeight)
+				selectionRects.append(CustomTextSelectionRect(rect: rect, writingDirection: .leftToRight, containsStart: containsStart, containsEnd: containsEnd, isVertical: false, transform: CGAffineTransform(rotationAngle: .pi / 4)))
 			}
 		}
 		
