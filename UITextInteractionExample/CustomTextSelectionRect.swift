@@ -15,7 +15,9 @@ class CustomTextSelectionRect: UITextSelectionRect {
 	private let internalContainsEnd: Bool
 	/// The internal storage for whether this selection is for vertical text
 	private let internalIsVertical: Bool
-	
+	/// Internal storage for the selection transform
+	private let internalTransform: CGAffineTransform
+
 	/// An initializer to create a `CustomTextSelectionRect` with all necessary properties
 	/// - Parameters:
 	///   - rect: The rect of the selection
@@ -23,12 +25,14 @@ class CustomTextSelectionRect: UITextSelectionRect {
 	///   - containsStart: Whether this rect contains the start of the selection (only false in multi-rect selections)
 	///   - containsEnd: Whether this rect contains the end of the selection (only false in multi-rect selections)
 	///   - isVertical: Whether the text in the selection is vertical
-	init(rect: CGRect, writingDirection: NSWritingDirection, containsStart: Bool, containsEnd: Bool, isVertical: Bool) {
+	///   - transform: Selection transform
+	init(rect: CGRect, writingDirection: NSWritingDirection, containsStart: Bool, containsEnd: Bool, isVertical: Bool, transform: CGAffineTransform) {
 		internalRect = rect
 		internalWritingDirection = writingDirection
 		internalContainsStart = containsStart
 		internalContainsEnd = containsEnd
 		internalIsVertical = isVertical
+		internalTransform = transform
 		super.init()
 	}
 	
@@ -55,5 +59,9 @@ class CustomTextSelectionRect: UITextSelectionRect {
 	override var isVertical: Bool {
 		return internalIsVertical
 	}
-	
+
+	override var transform: CGAffineTransform {
+		return internalTransform
+	}
+
 }
